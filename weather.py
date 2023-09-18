@@ -37,8 +37,11 @@ def seperate(df: pd.DataFrame, year: int, month: int) -> pd.DataFrame:
     new_df = pd.DataFrame(temp_list, columns=new_col)
     new_df = new_df.drop(['StnPresMax', 'StnPresMaxTime', 'StnPresMin', 'StnPresMinTime', 'T Max', 'T Max Time', 'T Min', 'T Min Time', 'RHMin', 
                           'RHMinTime', 'WSGust', 'WDGust', 'WGustTime', 'PrecpHour', 'PrecpMax10', 'PrecpMax10Time', 'PrecpMax60', 'PrecpMax60Time', 'UVI Max Time'], axis=1)
-    new_df = new_df.replace('...', 0)
-    new_df = new_df.replace('T', 0)
+    new_df = new_df.replace('...', np.nan)
+    new_df = new_df.replace('T', 0.1)
+    new_df = new_df.replace('x', np.nan)
+    new_df = new_df.replace('V', np.nan)
+
     return new_df
 
 
@@ -66,6 +69,10 @@ def get_month_data(name: str, year: int, month: int) -> pd.DataFrame:
         raise ValueError("未找到站名 || 資訊取得錯誤")
 
 
+def get_day_data(name: str, date : datetime.date) -> pd.DataFrame:
+    df = get_month_data(name, year=date.year, month=date.month)
+    return df.iloc[date.day-1:date.day]
+
 def get_data(station: str) -> pd.DataFrame:
     col = [('Unnamed: 0_level_0', '觀測時間 (day)', 'ObsTime'), ('press', '測站氣壓 (hPa)', 'StnPres'), ('press', '海平面氣壓 (hPa)', 'SeaPres'), ('press', '測站最高氣壓 (hPa)', 'StnPresMax'), ('press', '測站最高氣壓時間 (LST)', 'StnPresMaxTime'), ('press', '測站最低氣壓 (hPa)', 'StnPresMin'), ('press', '測站最低氣壓時間 (LST)', 'StnPresMinTime'), ('temperature', '氣溫 (℃)', 'Temperature'), ('temperature', '最高氣溫 (℃)', 'T Max'), ('temperature', '最高氣溫時間 (LST)', 'T Max Time'), ('temperature', '最低氣溫 (℃)', 'T Min'), ('temperature', '最低氣溫時間 (LST)', 'T Min Time'), ('Dew Point', '露點溫度 (℃)', 'Td dew point'), ('RH', '相對溼度 (%)', 'RH'), ('RH', '最小相對溼度 (%)', 'RHMin'), ('RH', '最小相對溼度時間 (LST)', 'RHMinTime'), ('WS/WD', '風速 (m/s)', 'WS'), ('WS/WD', '風向 (360degree)', 'WD'), ('WS/WD', '最大瞬間風 (m/s)', 'WSGust'), ('WS/WD', '最大瞬間風風向 (360degree)', 'WDGust'), ('WS/WD', '最大瞬間風風速時間 (LST)', 'WGustTime'), ('Precp', '降水量 (mm)', 'Precp'), ('Precp', '降水時數 (hour)', 'PrecpHour'), ('Precp', '最大十分鐘降水量 (mm)', 'PrecpMax10'), ('Precp', '最大十分鐘降水量起始時間 (LST)', 'PrecpMax10Time'), ('Precp', '最大六十分鐘降水量 (mm)', 'PrecpMax60'), ('Precp', '最大六十分鐘降水量起始時間 (LST)', 'PrecpMax60Time'), ('SunShine', '日照時數 (hour)', 'SunShine'), ('SunShine', '日照率 (%)', 'SunShineRate'), ('SunShine', '全天空日射量 (MJ/㎡)', 'GloblRad'), ('visibility', '能見度 (km)', 'VisbMean'), ('Evaperation', 'A型蒸發量 (mm)', 'EvapA'), ('UVI', '日最高紫外線指數', 'UVI Max'), ('UVI', '日最高紫外線指數時間 (LST)', 'UVI Max Time'), ('Cloud', '總雲量 (0~10)', 'Cloud Amount')]
     new_col = ['date']
@@ -86,7 +93,4 @@ def get_data(station: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    # df = get_data(station='淡水')
-    df = get_month_data('淡水', 2022, 11)
-    df.to_csv("./tan2.csv")
-    print(df.columns.tolist())
+    print(get_month_data('金沙', 2017, 1))

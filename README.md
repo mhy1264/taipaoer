@@ -7,6 +7,18 @@
 * CBA open date
 * CBA 天氣觀測網
 
+# Depencies
+```
+scikit-learn
+autoKeras
+pandas
+numpy
+openpyxl
+requests
+lxml
+bs4
+```
+
 # file Description
 ```
 ├── data

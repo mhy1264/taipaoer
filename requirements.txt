@@ -1,5 +1,8 @@
-auto-sklearn
+scikit-learn
+autoKeras
 pandas
 numpy
 openpyxl
 requests
+lxml
+bs4

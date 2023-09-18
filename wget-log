@@ -1,16 +1,0 @@
---2023-08-09 20:56:06--  https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/C-B0025-002?Authorization=CWB-1F48D413-8B74-4F25-A653-C18E4A566134
-Resolving opendata.cwb.gov.tw (opendata.cwb.gov.tw)... 61.56.14.16
-Connecting to opendata.cwb.gov.tw (opendata.cwb.gov.tw)|61.56.14.16|:443... connected.
-HTTP request sent, awaiting response... 302 Found
-Location: https://cwbopendata.s3.ap-northeast-1.amazonaws.com/DIV3/C-B0025-002.zip [following]
---2023-08-09 20:56:06--  https://cwbopendata.s3.ap-northeast-1.amazonaws.com/DIV3/C-B0025-002.zip
-Resolving cwbopendata.s3.ap-northeast-1.amazonaws.com (cwbopendata.s3.ap-northeast-1.amazonaws.com)... 52.219.1.63, 52.219.4.119, 52.219.172.46, ...
-Connecting to cwbopendata.s3.ap-northeast-1.amazonaws.com (cwbopendata.s3.ap-northeast-1.amazonaws.com)|52.219.1.63|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 631731 (617K) [binary/octet-stream]
-Saving to: ‘C-B0025-002?Authorization=CWB-1F48D413-8B74-4F25-A653-C18E4A566134’
-
-                 C-B0025-002?Autho   0%[                                                              ]       0  --.-KB/s                               C-B0025-002?Author  26%[===============>                                              ] 164.45K   787KB/s                              C-B0025-002?Authori  54%[================================>                             ] 334.45K   806KB/s                             C-B0025-002?Authoriz  87%[=====================================================>        ] 538.45K   865KB/s               C-B0025-002?Authorization=CWB-1F48 100%[=============================================================>] 616.92K   893KB/s    in 0.7s    
-
-2023-08-09 20:56:07 (893 KB/s) - ‘C-B0025-002?Authorization=CWB-1F48D413-8B74-4F25-A653-C18E4A566134’ saved [631731/631731]
-

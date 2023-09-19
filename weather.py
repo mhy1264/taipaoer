@@ -56,7 +56,7 @@ def get_month_data(name: str, year: int, month: int) -> pd.DataFrame:
         info[0], transformat(name), year, month, info[1]
     )
     try:
-        print(URL)
+        # print(URL)
         web = requests.get(URL)
         soup = bs(web.text, "lxml")
 

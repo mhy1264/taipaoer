@@ -1,13 +1,22 @@
 import csv
 import pandas as pd
+import numpy
+from haversine import haversine
+
+def cal_dis(s_Lng, s_Lat, uv_Lng, uv_Lat) -> float:
+    d1 = (s_Lat, s_Lng)
+    d2 = (uv_Lat, uv_Lng)
+    dis = haversine(d1, d2) * 1000
+    result = "%.7f" % dis
+    return result
 
 if __name__ == "__main__":
     index_cols1 = ["sitename","twd97lon","twd97lat"]
-    index_cols2 = ["gen_lng","gen_lat"]
 
     df1 = pd.read_csv("./data/UV_rays.csv", usecols=index_cols1) #紫外線站資料
-    df2 = pd.read_csv("./data/mini_dist2.csv", usecols=index_cols2)
-
+    df2 = pd.read_csv("./data/mini_dist2.csv")
+    dataframe = pd.DataFrame(df2)
+    
     uv = df1["sitename"].to_list()
     uv_Lng = df1["twd97lon"].to_list()
     uv_Lat = df1["twd97lat"].to_list()
@@ -16,10 +25,24 @@ if __name__ == "__main__":
     solar_Lat = df2["gen_lat"].to_list()
 
     inf = float('Inf')
+    temp_sta = []
+    temp_Lng = []
+    temp_Lat = []
 
     for i in range(len(solar_Lng)):
         min = inf
+        for k in range (len(uv)):
+            dis = cal_dis(solar_Lng[i], solar_Lat[i],uv_Lng[k],uv_Lat[k])
+            dis = float(dis)
+            if dis < min:
+                min = dis 
+                index = k
+        temp_sta.append(uv[index])
+        temp_Lng.append(uv_Lng[index])
+        temp_Lat.append(uv_Lat[index])
+        
+    dataframe['uv_station'] = temp_sta
+    dataframe['uv_lng'] = temp_Lng
+    dataframe['uv_lat'] = temp_Lat
 
-    # dataframe=[]
-
-    # print(df2)
+    dataframe.round(2).to_csv("./data/mini_dist_adduv.csv")

@@ -43,12 +43,12 @@ def get_data_by_month(year: int, month: int, station_name: str):
     df = pd.read_html(str(table))[0]
     date = df['日期'].tolist()
     val = df[station_name].tolist()
-    new_df = pd.DataFrame({"date":date, "UVI max": val})
+    new_df = pd.DataFrame({"date":date, "UVI Max": val})
     new_df['date'] = new_df['date'].apply(lambda x: format_month(x))
     return new_df
 
 def get_data(station_name: str):
-    temp = pd.DataFrame(columns=['date', 'UVI max'])
+    temp = pd.DataFrame(columns=['date', 'UVI Max'])
 
     for year in range(2017, 2023):
         for month in range(1, 13):

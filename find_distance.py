@@ -17,7 +17,7 @@ if __name__ == "__main__":
     index_cols2 = ["站名", "經度", "緯度"]
 
     df1 = pd.read_csv("./data/station.csv", usecols=index_cols1)  # 光電站資料 0-43
-    df2 = pd.read_csv("./data/weather_station.csv", usecols=index_cols2)  # 觀測站資料 0-666
+    df2 = pd.read_csv("./data/weather_station_with_sunshine.csv", usecols=index_cols2)  # 觀測站資料 0-666
 
     dataframe = []
 
@@ -42,4 +42,4 @@ if __name__ == "__main__":
     df = pd.DataFrame(dataframe, columns=new_columns)
     print(df.head())
 
-    df.to_csv("./data/dist.csv")
+    df.to_csv("./data/dist_with_sunshine.csv")

@@ -24,11 +24,17 @@ def getAreaCode(station_name):
         raise ValueError("Not Found")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 def format_month(date = str)-> str:
     date = date.split('/')
     return '-'.join(date)
 >>>>>>> 20f4fc1 (recover)
+=======
+def format_month(date = str)-> str:
+    date = date.split('/')
+    return '-'.join(date)
+>>>>>>> 10b00012261fdf5716e77d12c4c7502602a110fe
 
 def get_data_by_month(year: int, month: int, station_name: str):
     area_code = getAreaCode(station_name)
@@ -43,13 +49,19 @@ def get_data_by_month(year: int, month: int, station_name: str):
     cont = "{}{}{}".format("<table>", web.text, "</table>")
     table = bs(cont, features='lxml').find('table')
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> 10b00012261fdf5716e77d12c4c7502602a110fe
     df = pd.read_html(str(table))[0]
     date = df['日期'].tolist()
     val = df[station_name].tolist()
-    new_df = pd.DataFrame({"date":date, "UVI max": val})
+    new_df = pd.DataFrame({"date":date, "UVI Max": val})
+    new_df['date'] = new_df['date'].apply(lambda x: format_month(x))
     return new_df
 
 def get_data(station_name: str):
+<<<<<<< HEAD
     temp = pd.DataFrame(columns=['date', 'UVI max'])
 =======
     print(table)
@@ -63,6 +75,9 @@ def get_data(station_name: str):
 def get_data(station_name: str):
     temp = pd.DataFrame(columns=['date', 'UVI Max'])
 >>>>>>> 20f4fc1 (recover)
+=======
+    temp = pd.DataFrame(columns=['date', 'UVI Max'])
+>>>>>>> 10b00012261fdf5716e77d12c4c7502602a110fe
 
     for year in range(2017, 2023):
         for month in range(1, 13):
@@ -78,8 +93,12 @@ def get_data(station_name: str):
 
 if __name__ == "__main__":
 <<<<<<< HEAD
+<<<<<<< HEAD
     df = get_data('桃園')
 =======
     df = get_data_by_month(2023,2,'桃園')
 >>>>>>> 20f4fc1 (recover)
+=======
+    df = get_data_by_month(2023,2,'桃園')
+>>>>>>> 10b00012261fdf5716e77d12c4c7502602a110fe
     print(df)

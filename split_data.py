@@ -2,21 +2,24 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
+import os
 
-solar_station = pd.read_csv("./data/solar_daily.csv")
+folder_path = './weather_data'
+solar_station = os.listdir(folder_path)
 
-for row in range(1, solar_station.shape[1]-2):
-    df = solar_station.iloc[:, [row, -1]]
-    current_station = df.columns.tolist()[0]
+# print (solar_station)
 
-    data = pd.read_csv("./weather_data/{}.csv".format(current_station))
+# train = pd.DataFrame(columns=data.columns)
+train = pd.DataFrame()
+test = train
+
+for station in solar_station:
+
+    data = pd.read_csv("./weather_data/{}".format(station))
 
     data = data[data['degree'] > 0]
     data = data[data['SunShine'].notna()]
-    print(data.shape)
-
-    train = pd.DataFrame(columns=data.columns)
-    test = train
+    print(data.shape)    
 
     if data.shape[0] > 10:
         temp_train, temp_test = train_test_split(data, test_size=0.2)
@@ -29,6 +32,8 @@ for row in range(1, solar_station.shape[1]-2):
 
 train.to_csv("train.csv")
 test.to_csv("test.csv")
+
+
 
 # data = pd.read_csv("./weather_data/台中龍井光電.csv")
 

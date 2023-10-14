@@ -7,7 +7,7 @@ if __name__ == "__main__":
     index_cols2 = ["站名", "經度", "緯度"]
 
     df1 = pd.read_csv("./data/station.csv", usecols=index_cols1)  # 光電站資料 0-43
-    df2 = pd.read_csv("./data/weather_station.csv",
+    df2 = pd.read_csv("./data/weather_station_with_sunshine.csv",
                       usecols=index_cols2)  # 觀測站資料 0-666
     df3 = pd.read_csv('./data/dist.csv')
 
@@ -32,11 +32,13 @@ if __name__ == "__main__":
             if df3[solar[i]][k] < min:
                 min = df3[solar[i]][k]
                 index = k
-        temp = [solar_Lng[i], solar_Lat[i], weather[index],
+        temp = [solar[i], solar_Lng[i], solar_Lat[i], weather[index],
                 weather_Lng[index], weather_Lat[index]]
         dataframe.append(temp)
+
+    print(dataframe)
 
     df = pd.DataFrame(dataframe, index=new_index, columns=[
                       "gen_station", "gen_lng", "gen_lat", "obv_station", "obv_lng", "obv_lat"])
 
-    df.round(2).to_csv("./data/mini_dist.csv")
+    df.round(2).to_csv("./data/mini_dist_with_sunshine.csv")

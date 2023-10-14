@@ -39,7 +39,7 @@ def get_data_by_month(year: int, month: int, station_name: str):
     web = session.get(url)
     cont = "{}{}{}".format("<table>", web.text, "</table>")
     table = bs(cont, features='lxml').find('table')
-    print(table)
+
     df = pd.read_html(str(table))[0]
     date = df['日期'].tolist()
     val = df[station_name].tolist()

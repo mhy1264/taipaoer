@@ -7,6 +7,8 @@ import os
 folder_path = './weather_data'
 solar_station = os.listdir(folder_path)
 
+# print (solar_station)
+
 # train = pd.DataFrame(columns=data.columns)
 train = pd.DataFrame()
 test = train

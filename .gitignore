@@ -166,3 +166,4 @@ cython_debug/
 *.txt
 !requirement.txt
 *.html
+structured_data_regressor

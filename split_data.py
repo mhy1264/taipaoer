@@ -1,43 +1,41 @@
-
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
+import os
+import math
+folder_path = './weather_data'
+solar_station = os.listdir(folder_path)
+
+# print (solar_station)
+
+# train = pd.DataFrame(columns=data.columns)
 
 
-data = pd.read_csv("./weather_data/台中龍井光電.csv")
+def split_data(percentage=100):
 
-data = data[data['degree'] > 0]
-data = data[data['SunShine'].notna()]
-print(data.shape)
+    train = pd.DataFrame()
+    test = train
+    percentage = 100 if percentage > 100 else percentage
+    percentage = 0 if percentage < 0 else percentage
 
-train = pd.DataFrame(columns=data.columns)
-test = train
+    for station in solar_station:
 
-if data.shape[0] > 10:
-    temp_train, temp_test = train_test_split(data, test_size=0.2)
-    train = pd.concat([temp_train, train], ignore_index=True)
-    test = pd.concat([temp_test, test], ignore_index=True)
+        data = pd.read_csv("./weather_data/{}".format(station))
 
-print(train.shape)
-print(test.shape)
+        data = data[data['degree'] > 0]
+        data = data[data['SunShine'].notna()]
+        data = data.head(math.ceil(data.shape[0] * percentage / 100))
 
-data = pd.read_csv("./weather_data/嘉義民雄光電.csv")
+        if data.shape[0] > 10:
+            temp_train, temp_test = train_test_split(data, test_size=0.2)
+            train = pd.concat([temp_train, train], ignore_index=True)
+            test = pd.concat([temp_test, test], ignore_index=True)
 
-
-data = data[data['degree'] > 0]
-data = data[data['SunShine'].notna()]
-print(data.shape)
+    return train, test
 
 
-if data.shape[0] > 10:
-    temp_train, temp_test = train_test_split(data, test_size=0.2)
-    train = pd.concat([temp_train, train], ignore_index=True)
-    test = pd.concat([temp_test, test], ignore_index=True)
-
-
-print(train.shape)
-print(test.shape)
-
-
-train.to_csv("train.csv")
-test.to_csv("test.csv")
+if __name__ == "__main__":
+    train, test = split_data(1)
+    print(train, test)
+    train.to_csv("./train.csv")
+    test.to_csv("./test.csv")

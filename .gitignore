@@ -163,6 +163,7 @@ cython_debug/
 *.csv
 !data/*.csv
 !weather_data/*.csv
+!result.csv
 *.txt
 !requirement.txt
 *.html

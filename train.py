@@ -3,8 +3,16 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import autokeras as ak
+import argparse
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("epochs", help="epoch 數", type=int)
+    parser.add_argument("maxtrial",
+                        help="maxtrial", type=int)
+
+    args = parser.parse_args()
+
     train, test = split_data.split_data(100)
 
     x_columns = ['date', 'ObsTime', 'Temperature',
@@ -20,9 +28,9 @@ if __name__ == "__main__":
     y_test = test[y_columns]
 
     # It tries 10 different models.
-    reg = ak.StructuredDataRegressor(max_trials=10, overwrite=True)
+    reg = ak.StructuredDataRegressor(max_trials=args.maxtrial, overwrite=True)
     # Feed the structured data regressor with training data.
-    reg.fit(x_train, y_train, epochs=100)
+    reg.fit(x_train, y_train, epochs=args.epochs)
     # Predict with the best model.
     predicted_y = reg.predict(x_test)
     # Evaluate the best model with testing data.

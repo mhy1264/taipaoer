@@ -1,14 +1,8 @@
-import autokeras as ak
-from sklearn.model_selection import train_test_split
+
 import pandas as pd
 import numpy as np
 import weather
 import uva
-
-# 显示所有列
-pd.set_option('display.max_columns', None)
-# 显示所有行
-pd.set_option('display.max_rows', None)
 
 
 def get_obv_station(gen_station: str) -> str:
@@ -55,12 +49,12 @@ for row in range(1, solar_daily.shape[1]):
     merged_df.rename(columns={current_station: "degree"}, inplace=True)
 
     # 合併 merge_df 和紫外線資料 放到 UVI max 這格內
-    uva_station = get_uva_station(current_station)
-    uva_data = uva.get_data(uva_station)
+    # uva_station = get_uva_station(current_station)
+    # uva_data = uva.get_data(uva_station)
 
-    print(current_station, obv_station, uva_station)
+    # print(current_station, obv_station, uva_station)
 
-    merged_df = pd.merge(merged_df, uva_data, on="date", how="inner")
+    # merged_df = pd.merge(merged_df, uva_data, on="date", how="inner")
     merged_df["station"] = [current_station]*merged_df.shape[0]
 
     location = get_location(current_station)[0]

@@ -13,10 +13,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    train, test = split_data.split_data(100)
+    train, test = split_data.split_data_by_station('蘭嶼電廠光電', 100)
 
-    x_columns = ['date', 'ObsTime', 'Temperature',
-                 'RH', 'SunShine', 'SunShineRate', 'UVI Max_y',
+    x_columns = ['Temperature',
+                 'RH', 'SunShineRate', 'UVI Max',
                  'Lng', 'Lat']
     y_columns = ['degree']
 

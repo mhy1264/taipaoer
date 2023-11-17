@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     train, test = train_test_split(pd.read_csv(args.filePath), test_size=0.3)
 
-    x_columns = ['ObsTime', 'Temperature',
+    x_columns = ['Temperature',
                  'RH', 'SunShine', 'UVI Max',]
     y_columns = ['degree']
 

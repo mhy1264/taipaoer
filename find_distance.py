@@ -15,7 +15,7 @@ def cal_dis(s_Lng, s_Lat, w_Lng, w_Lat) -> float:
 if __name__ == "__main__":
 
     df1 = pd.read_csv(
-        "./data/station.csv")[["Station", "Lng", "Lat"]]  # 光電站資料 0-43
+        "./data/gen_station.csv")[["Station", "Lng", "Lat"]]  # 光電站資料 0-43
     df2 = pd.read_csv(
         "./data/weather_station.csv")[["StationName", "StationLongitude", "StationLatitude"]]  # 觀測站資料 0-666
 

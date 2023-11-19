@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup
 import requests
 import urllib.parse
-import datetime
+import pandas as pd
+import json
+from calendar import isleap
+import uva
 
 
 def transformat(string: str) -> str:
@@ -13,86 +16,69 @@ def transformat(string: str) -> str:
 
 
 def get_station_info(name: str) -> list:
-    df = pd.read_csv("./data/weather_station_with_sunshine.csv")
-    fliter = (df["站名"] == name)
+    df = pd.read_csv("./data/weather_station.csv")
+    fliter = (df["StationName"] == name)
     info = df[fliter].iloc[0]
-    return [info['站號'], info['海拔高度(m)']]
+    station_type = "cwb"
+    return [info['StationID'], station_type]
 
 
-def seperate(df: pd.DataFrame, year: int, month: int) -> pd.DataFrame:
-    col = df.columns.to_list()
-    new_col = []
+def get_month_data(station: list, year: int, month: int, UVStation: str):
 
-    for i in col:
-        new_col.append(i[2])
+    month = '0{}'.format(month) if month < 10 else "{}".format(month)
 
-    new_col[0] = "date"
-    temp_list = []
+    ds = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if (isleap(year)):
+        ds[2] = 29
+    data = {
+        "date": "2017-02-01T00:00:00.000+08:00",
+        "type": "table_month",
+        "stn_ID": station[0],
+        "stn_type": station[1],
+        "start": "{}-{}-01T00:00:00".format(year, month),
+        "end": "{}-{}-{}T00:00:00".format(year, month, ds[int(month)])
+    }
 
-    for i in range(df.shape[0]):
-        data = df.iloc[i].tolist()
-        data[0] = datetime.date(int(year), int(month), int(data[0]))
-        temp_list.append(data)
+    res = requests.post(
+        "https://codis.cwa.gov.tw/api/station?", data=data)
 
-    new_df = pd.DataFrame(temp_list, columns=new_col)
-    new_df = new_df.drop(['StnPresMax', 'StnPresMaxTime', 'StnPresMin', 'StnPresMinTime', 'T Max', 'T Max Time', 'T Min', 'T Min Time', 'RHMin',
-                          'RHMinTime', 'WSGust', 'WDGust', 'WGustTime', 'PrecpHour', 'PrecpMax10', 'PrecpMax10Time', 'PrecpMax60', 'PrecpMax60Time', 'UVI Max Time'], axis=1)
-    new_df = new_df.replace('...', np.nan)
-    new_df = new_df.replace('T', 0.1)
-    new_df = new_df.replace('x', np.nan)
-    new_df = new_df.replace('V', np.nan)
+    daily_data = json.loads(res.text)['data'][0]['dts']
 
-    return new_df
+    Datas = []
+    print(year, month)
+    for i in daily_data:
+        temp = [np.nan]*5
+        temp[0] = i['DataDate'][0:10]
+        temp[1] = i['AirTemperature']['Mean']
+        temp[2] = i['UVIndex']['Maximum'] if (
+            'UVIndex' in i and 'Maximin' in i['UVIndex']) else -1
+        temp[3] = i['SunshineDuration']['Total']
+        temp[4] = i['GlobalSolarRadiation']['Accumulation']
+        Datas.append(temp)
+    Datas.sort()
 
-
-def get_month_data(name: str, year: int, month: int) -> pd.DataFrame:
-    if month < 10:
-        month = "0{}".format(month)
-    else:
-        month = str(month)
-    info = get_station_info(name)
-
-    URL = "https://e-service.cwb.gov.tw/HistoryDataQuery/MonthDataController.do?command=viewMain&station={}&stname={}&datepicker={}-{}&altitude={}m#".format(
-        info[0], transformat(name), year, month, info[1]
-    )
-    try:
-        # print(URL)
-        web = requests.get(URL)
-        soup = bs(web.text, "lxml")
-
-        table = soup.find_all("table", {"id": "MyTable"})
-
-        df = pd.read_html(str(table[0]))[0]
-        df = seperate(df, year, month)
-        return df
-    except:
-        raise ValueError("未找到站名 || 資訊取得錯誤")
+    df = pd.DataFrame(
+        Datas, columns=['Date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad'])
+    if (df['UV'] == -1).all():
+        UVinfo = uva.get_data_by_month(int(year), int(month), UVStation)[
+            "UVI Max"].to_list()
+        df['UV'] = UVinfo
+    return df
 
 
-def get_day_data(name: str, date: datetime.date) -> pd.DataFrame:
-    df = get_month_data(name, year=date.year, month=date.month)
-    return df.iloc[date.day-1:date.day]
-
-
-def get_data(station: str) -> pd.DataFrame:
-    col = [('Unnamed: 0_level_0', '觀測時間 (day)', 'ObsTime'), ('press', '測站氣壓 (hPa)', 'StnPres'), ('press', '海平面氣壓 (hPa)', 'SeaPres'), ('press', '測站最高氣壓 (hPa)', 'StnPresMax'), ('press', '測站最高氣壓時間 (LST)', 'StnPresMaxTime'), ('press', '測站最低氣壓 (hPa)', 'StnPresMin'), ('press', '測站最低氣壓時間 (LST)', 'StnPresMinTime'), ('temperature', '氣溫 (℃)', 'Temperature'), ('temperature', '最高氣溫 (℃)', 'T Max'), ('temperature', '最高氣溫時間 (LST)', 'T Max Time'), ('temperature', '最低氣溫 (℃)', 'T Min'), ('temperature', '最低氣溫時間 (LST)', 'T Min Time'), ('Dew Point', '露點溫度 (℃)', 'Td dew point'), ('RH', '相對溼度 (%)', 'RH'), ('RH', '最小相對溼度 (%)', 'RHMin'), ('RH', '最小相對溼度時間 (LST)', 'RHMinTime'), ('WS/WD', '風速 (m/s)', 'WS'), ('WS/WD', '風向 (360degree)',
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  'WD'), ('WS/WD', '最大瞬間風 (m/s)', 'WSGust'), ('WS/WD', '最大瞬間風風向 (360degree)', 'WDGust'), ('WS/WD', '最大瞬間風風速時間 (LST)', 'WGustTime'), ('Precp', '降水量 (mm)', 'Precp'), ('Precp', '降水時數 (hour)', 'PrecpHour'), ('Precp', '最大十分鐘降水量 (mm)', 'PrecpMax10'), ('Precp', '最大十分鐘降水量起始時間 (LST)', 'PrecpMax10Time'), ('Precp', '最大六十分鐘降水量 (mm)', 'PrecpMax60'), ('Precp', '最大六十分鐘降水量起始時間 (LST)', 'PrecpMax60Time'), ('SunShine', '日照時數 (hour)', 'SunShine'), ('SunShine', '日照率 (%)', 'SunShineRate'), ('SunShine', '全天空日射量 (MJ/㎡)', 'GloblRad'), ('visibility', '能見度 (km)', 'VisbMean'), ('Evaperation', 'A型蒸發量 (mm)', 'EvapA'), ('UVI', '日最高紫外線指數', 'UVI Max'), ('UVI', '日最高紫外線指數時間 (LST)', 'UVI Max Time'), ('Cloud', '總雲量 (0~10)', 'Cloud Amount')]
-    new_col = ['date']
-    for i in col:
-        new_col.append(i[2])
-    temp = pd.DataFrame(columns=new_col)
-
-    for year in range(2017, 2024):
+def get_data(station: str, UVStation) -> pd.DataFrame:
+    col = ['Date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad']
+    temp = pd.DataFrame(columns=col)
+    station = get_station_info(station)
+    print(station, UVStation)
+    for year in range(2017, 2023):
         for month in range(1, 13):
-            df = get_month_data(station, year, month)
+            df = get_month_data(station, year, month, UVStation)
             temp = pd.concat([temp, df])
+        print("\n")
 
     for month in range(1, 7):
-        df = get_month_data(station, 2023, month)
+        df = get_month_data(station, 2023, month, UVStation)
         temp = pd.concat([temp, df])
 
     return temp
-
-
-if __name__ == "__main__":
-    print(get_month_data('金沙', 2017, 1))

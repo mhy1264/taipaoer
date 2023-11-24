@@ -39,6 +39,7 @@ bs4
 ├── find_min_distance.py     --> 取得離發電站最近的天氣觀測站
 ├── find_uv_distance.py      --> 取得離發電站最近的紫外線觀測站
 ├── newWeather.py            --> 利用新版網站取得氣象資訊
+├── count_area.py            --> 針對每個非站點計算周圍站點能組成的三角形面積最小值
 ├── paritial_train.py        --> 訓練單一的發電站
 ├── place_to_lat.py          --> 取得發電站的經緯度
 ├── preprocess.py            --> 合併天氣資料、紫外線資料、發電資料

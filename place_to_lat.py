@@ -5,7 +5,6 @@ from random import random
 from bs4 import BeautifulSoup
 import requests
 import json
-import numpy
 import pandas as pd
 
 

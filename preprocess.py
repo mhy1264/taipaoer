@@ -53,12 +53,12 @@ if __name__ == "__main__":
             # 合併 merge_df 和紫外線資料 放到 UVI max 這格內
 
             merged_df["station"] = [current_station]*merged_df.shape[0]
-
             merged_df = merged_df[merged_df['degree'] > 0]
 
+            print(merged_df.head())
             try:
                 merged_df.to_csv(
-                    "./nwd/{}_{}_{}.csv".format(fileName, obv_station, uva_station))
+                    "./new_weather_data/{}_{}_{}.csv".format(fileName, obv_station, uva_station))
             except Exception as e:
                 print("{} Error: {}".format(fileName, e.args))
         except Exception as e:

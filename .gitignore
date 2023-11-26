@@ -169,3 +169,4 @@ cython_debug/
 !requirement.txt
 *.html
 structured_data_regressor
+*json

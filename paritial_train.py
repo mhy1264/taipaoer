@@ -5,6 +5,9 @@ import tensorflow as tf
 import autokeras as ak
 import argparse
 
+import numpy as np
+from sklearn.model_selection import KFold
+
 
 def myprint(s):
     with open('modelsummary.txt', 'a') as f:
@@ -24,24 +27,36 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    train, test = train_test_split(pd.read_csv(args.filePath), test_size=0.3)
+    # train, test = train_test_split(pd.read_csv(args.filePath), test_size=0.3)
 
-    x_columns = ['Temperature',
-                 'RH', 'SunShine', 'UVI Max',]
+    data = pd.read_csv(args.filePath)
+    x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
     y_columns = ['degree']
 
-    x_train = mean_norm(train[x_columns])
-    x_train.dropna()
-    y_train = train[y_columns]
+    # x_train = mean_norm(train[x_columns])
+    # x_train.dropna()
+    # y_train = train[y_columns]
 
-    x_test = mean_norm(test[x_columns])
-    y_test = test[y_columns]
+    # x_test = mean_norm(test[x_columns])
+    # y_test = test[y_columns]
 
     # It tries 10 different models.
     reg = ak.StructuredDataRegressor(max_trials=args.maxtrial, overwrite=True)
-    # Feed the structured data regressor with training data.
-    reg.fit(x_train, y_train, epochs=args.epochs)
-    # Predict with the best model.
-    predicted_y = reg.predict(x_test)
-    # Evaluate the best model with testing data.
-    print(reg.evaluate(x_test, y_test))
+
+    kf = KFold(n_splits=10)
+    kf.get_n_splits(data)
+    for i, (train_index, test_index) in enumerate(kf.split(data)):
+
+        print(f"Fold {i}:")
+        x_train = data.iloc[train_index][x_columns]
+        y_train = data.iloc[train_index][y_columns]
+
+        x_test = data.iloc[test_index][x_columns]
+        y_test = data.iloc[test_index][y_columns]
+
+        # Feed the structured data regressor with training data.
+        reg.fit(x_train, y_train, epochs=args.epochs)
+        # Predict with the best model.
+        predicted_y = reg.predict(x_test)
+        # Evaluate the best model with testing data.
+        print(reg.evaluate(x_test, y_test))

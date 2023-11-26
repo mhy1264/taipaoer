@@ -49,19 +49,20 @@ def split_data(percentage=100):
     return train, test
 
 
-def k_fold(data: pd.DataFrame):
-    x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
-    y_columns = ['degree']
+def k_fold(percentage=100):
 
-    X = data[x_columns]
-    y = data[y_columns]
-    kf = KFold(n_splits=2)
-    kf.get_n_splits()
-    for X_train, X_test in kf.split(X):
-        print(X_train.tolist())
-        print("-----")
-        print(X_test.tolist())
-        print("======")
+    train = pd.DataFrame()
+    percentage = 100 if percentage > 100 else percentage
+    percentage = 0 if percentage < 0 else percentage
+
+    for root, dirs, files in os.walk("./new_weather_data", topdown=False):
+        for name in files:
+            print(os.path.join(root, name))
+            df = pd.read_csv(os.path.join(root, name))
+            train = pd.concat([df, train], ignore_index=True)
+        for name in dirs:
+            pass
+    return train
 
 
 if __name__ == "__main__":

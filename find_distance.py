@@ -1,15 +1,5 @@
-import csv
 import pandas as pd
-from haversine import haversine
-import numpy
-
-
-def cal_dis(s_Lng, s_Lat, w_Lng, w_Lat) -> float:
-    d1 = (s_Lat, s_Lng)
-    d2 = (w_Lat, w_Lng)
-    dis = haversine(d1, d2) * 1000
-    result = "%.7f" % dis
-    return result
+from util import cal_dis
 
 
 if __name__ == "__main__":

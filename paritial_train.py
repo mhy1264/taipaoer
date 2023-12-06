@@ -44,15 +44,16 @@ if __name__ == "__main__":
     reg = ak.StructuredDataRegressor(max_trials=args.maxtrial, overwrite=True)
 
     kf = KFold(n_splits=10)
-    kf.get_n_splits(data)
-    for i, (train_index, test_index) in enumerate(kf.split(data)):
+    train, test = train_test_split(data, test_size=0.2)
+    kf.get_n_splits(train)
+    for i, (train_index, test_index) in enumerate(kf.split(train)):
 
         print(f"Fold {i}:")
-        x_train = data.iloc[train_index][x_columns]
-        y_train = data.iloc[train_index][y_columns]
+        x_train = train.iloc[train_index][x_columns]
+        y_train = train.iloc[train_index][y_columns]
 
-        x_test = data.iloc[test_index][x_columns]
-        y_test = data.iloc[test_index][y_columns]
+        x_test = train.iloc[test_index][x_columns]
+        y_test = train.iloc[test_index][y_columns]
 
         # Feed the structured data regressor with training data.
         reg.fit(x_train, y_train, epochs=args.epochs)
@@ -60,3 +61,10 @@ if __name__ == "__main__":
         predicted_y = reg.predict(x_test)
         # Evaluate the best model with testing data.
         print(reg.evaluate(x_test, y_test))
+    
+    test_x = test[x_columns]
+    test_y = test[y_columns]
+    prid_y = reg.predict(test_x)
+    print("====== Final Result =====")
+    print(reg.evaluate(test_x, test_y))
+

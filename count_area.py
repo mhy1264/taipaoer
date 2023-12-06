@@ -1,24 +1,15 @@
-import sys
 import pandas as pd 
-import numpy as np
-from haversine import haversine
 import math
 
+from util import cal_dis
 INF = math.inf
 
-#計算經緯度間距離
-def cal_dis(s_Lng, s_Lat, uv_Lng, uv_Lat) -> float:
-    d1 = (s_Lat, s_Lng)
-    d2 = (uv_Lat, uv_Lng)
-    dis = haversine(d1, d2) * 1000
-    result = "%.7f" % dis
-    return result
 
 #找出目前暫存的最大值
 def find_max(sta1, sta2, sta3):
     sta = [sta1, sta2, sta3]
     max_val = max(sta)
-    return sta.index(max_val) if max_val in sta else False
+    return sta.index(max_val)+1 if max_val in sta else False
 
 
 def three_points_solar(Lng: float, Lat: float):
@@ -74,6 +65,6 @@ if __name__ == "__main__":
     w = three_points_weather(120.9876, 23.83876)
     u = three_points_uva(120.9876, 23.8387)
 
-    # print(s)
+    print(s)
     print(w)
-    # print(u)
+    print(u)

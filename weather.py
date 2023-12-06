@@ -1,12 +1,29 @@
 import pandas as pd
 import numpy as np
-from bs4 import BeautifulSoup
 import requests
-import urllib.parse
-import pandas as pd
 import json
 from calendar import isleap
-import uva
+from count_area import three_points_weather
+from util import cal_dis
+
+def get_obv_station(gen_station: str):
+    obv_station = pd.read_csv("./data/gen_obv_min_dist_with_uv.csv")
+    df = obv_station[obv_station['gen_station'].astype(
+        str).str.contains("{}".format(gen_station))]
+    # print(df)
+    try:
+        res = df[['obv_station1', 'uv_station']].values.tolist()[0]
+        return res[0], res[1]
+    except:
+        return None, None
+    
+
+def get_weater_location(weather_station: str):
+    df = pd.read_csv("./data/weather_station.csv")
+    
+    df = df[df['StationName'] == weather_station] 
+    res = df.values.tolist()[0]
+    return [res[7], res[8]]
 
 
 def get_station_info(name: str) -> list:
@@ -61,14 +78,14 @@ def get_month_data(station: list, year: int, month: int, UVStation: str):
 
         df = pd.DataFrame(
             Datas, columns=['date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad', "HaveEmpty"])
-        # if (df['UV'] == -1).all():
-        #     UVinfo = uva.get_data_by_month(int(year), int(month), UVStation)[
-        #         "UVI Max"].to_list()
-        #     df['UV'] = UVinfo
-        #     df['HaveEmpty'] = [True]*len(UVinfo)
+        
+
+        if (df['UV'].to_list() == [None]*df.shape[0]):
+            df['UV'] = 0
         return df
     else:
-        raise ValueError("mata Count = 0")
+        print("mata Count = 0")
+        return None
 
 
 def get_data(station: str, UVStation) -> pd.DataFrame:
@@ -87,3 +104,47 @@ def get_data(station: str, UVStation) -> pd.DataFrame:
         temp = pd.concat([temp, df])
 
     return temp
+
+
+def preprocess_data_weather(station_name: str):
+    gen_station = pd.read_csv("./data/gen_station.csv")
+
+    item = gen_station[gen_station['Station'] == station_name]
+    sts = three_points_weather(item.iloc[0]['Lng'], item.iloc[0]['Lat'])
+    # print(item['Station'], sts)
+        
+    w1 = get_data(sts[0], "")
+    w2 = get_data(sts[1], "")
+    w3 = get_data(sts[2], "")
+
+    col = ['Temp', 'SunShineHour', 'GlobalRad']
+
+    # 先處理 ['Temp', 'SunShineHour', 'GlobalRad']
+
+    print(w1)
+    print(w2)
+    print(w3)
+    df = pd.concat([w1[col]/3+w2[col]/3+w3[col]/3],axis=1)
+
+
+    # 後處理 ['UV']
+    data = {
+        'date' : w1['date'].to_list(),
+        'UV1' : w1['UV'].to_list(),
+        'UV2' : w2['UV'].to_list(),
+        'UV3' : w3['UV'].to_list(),
+    }
+
+    UV = pd.DataFrame(data)
+
+    print(UV)
+
+    return df
+
+
+if __name__ == "__main__":
+    df = preprocess_data_weather('竹工E/S光電站')
+    print(df)
+
+
+    

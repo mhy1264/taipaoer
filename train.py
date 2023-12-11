@@ -29,9 +29,11 @@ if __name__ == "__main__":
     data['unit_deg'] = data['degree'] / data['capacity']
 
     print(data.shape)
+    
+    data = data.head(100)
 
     # It tries 10 different models.
-    reg = ak.StructuredDataRegressor(max_trials=100, overwrite=True)
+    reg = ak.StructuredDataRegressor(max_trials=10, overwrite=True)
 
     kf = KFold(n_splits=10)
     train, test = train_test_split(data, test_size=0.3)
@@ -62,4 +64,4 @@ if __name__ == "__main__":
 
     print(type(model))  # <class 'tensorflow.python.keras.engine.training.Model'>
 
-    model.save("total.h5")
+    model.save('testmodel', save_format='tf')

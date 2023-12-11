@@ -1,48 +1,49 @@
-import split_data
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import autokeras as ak
-import argparse
-
+import os
 import numpy as np
-import pandas as pd
-import tensorflow as tf
-import autokeras as ak
-import argparse
-
-import numpy as np
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("epochs", help="epoch 數", type=int)
-    # parser.add_argument("maxtrial",
-    #                     help="maxtrial", type=int)
-
-    # args = parser.parse_args()
 
     x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
-    y_columns = ['degree']
+    y_columns = ['unit_deg']
 
-    data = split_data.k_fold(100)
-    data.to_csv("./total.csv")
+    data = pd.DataFrame(columns=x_columns+y_columns)
+
+    # 走訪資料夾下的檔案
+    for file in os.listdir("./t_data"):
+        data = pd.concat([data, pd.read_csv("./t_data/"+file)])
+
+    print(data)
     print(data.shape)
 
+    data = data[data['degree'] > 0]
+    data = data[data['Temp'] > 0]
+    data = data[data['UV'] > 0]
+    data = data[data['SunShineHour'] > 0]
+    data = data[data['GlobalRad'] > 0]
+    data['unit_deg'] = data['degree'] / data['capacity']
+
+    print(data.shape)
+
+    # It tries 10 different models.
     reg = ak.StructuredDataRegressor(max_trials=100, overwrite=True)
 
     kf = KFold(n_splits=10)
-    kf.get_n_splits(data)
-
-    for i, (train_index, test_index) in enumerate(kf.split(data)):
+    train, test = train_test_split(data, test_size=0.3)
+    kf.get_n_splits(train)
+    for i, (train_index, test_index) in enumerate(kf.split(train)):
 
         print(f"Fold {i}:")
-        x_train = data.iloc[train_index][x_columns]
-        y_train = data.iloc[train_index][y_columns]
+        x_train = train.iloc[train_index][x_columns]
+        y_train = train.iloc[train_index][y_columns]
 
-        x_test = data.iloc[test_index][x_columns]
-        y_test = data.iloc[test_index][y_columns]
+        x_test = train.iloc[test_index][x_columns]
+        y_test = train.iloc[test_index][y_columns]
 
         # Feed the structured data regressor with training data.
         reg.fit(x_train, y_train, epochs=100)
@@ -51,5 +52,14 @@ if __name__ == "__main__":
         # Evaluate the best model with testing data.
         print(reg.evaluate(x_test, y_test))
 
+    test_x = test[x_columns]
+    test_y = test[y_columns]
+    prid_y = reg.predict(test_x)
+    print("====== Final Result =====")
+    print(reg.evaluate(test_x, test_y))
+
     model = reg.export_model()
-    model.summary()
+
+    print(type(model))  # <class 'tensorflow.python.keras.engine.training.Model'>
+
+    model.save("total.h5")

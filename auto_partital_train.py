@@ -18,8 +18,8 @@ def mean_norm(df_input):
 
 if __name__ == "__main__":
 
-    epochs = 10
-    maxtrial = 1
+    epochs = 100
+    maxtrial = 10
 
     for file in os.listdir("./t_data"):
         data = pd.read_csv("./t_data/" + file)
@@ -68,8 +68,10 @@ if __name__ == "__main__":
         current_datetime = datetime.now()
         current_date_time = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
 
+        loss = orig - data.shape[0]
         with open("./result.csv", "a") as f:
-            f.write("{},{},{},{}\n".format(current_date_time, file,
-                    orig - data.shape[0], res))
+            f.write("{},{},{},{},{},{}\n".format(current_date_time, file, orig,
+                    loss, 100*(loss/orig), res))
+            # drop_rate(%),evaluate_value[0], evaluate_value[1]
 
         model = reg.export_model()

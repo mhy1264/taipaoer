@@ -164,6 +164,7 @@ cython_debug/
 !data/*.csv
 !weather_data/*.csv
 !new_weather_data/*.csv
+!new2_weather_data/*.csv
 !result.csv
 *.txt
 !requirement.txt

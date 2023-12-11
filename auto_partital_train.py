@@ -18,8 +18,8 @@ def mean_norm(df_input):
 
 if __name__ == "__main__":
 
-    epochs = 100
-    maxtrial = 10
+    epochs = 10
+    maxtrial = 1
 
     for file in os.listdir("./t_data"):
         data = pd.read_csv("./t_data/" + file)
@@ -69,12 +69,7 @@ if __name__ == "__main__":
         current_date_time = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
 
         with open("./result.csv", "a") as f:
-            f.write("{},{},{},{},{}\n".format(current_date_time, file,
-                    orig - data.shape[0], reg))
+            f.write("{},{},{},{}\n".format(current_date_time, file,
+                    orig - data.shape[0], res))
 
         model = reg.export_model()
-
-        # <class 'tensorflow.python.keras.engine.training.Model'>
-        print(type(model))
-
-        model.save("model_autokeras.h5")

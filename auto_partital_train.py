@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
         with open("./result.csv", "a") as f:
             f.write("{},{},{},{},{}\n".format(current_date_time, file,
-                    orig - data.shape[0], reg[0], reg[1]))
+                    orig - data.shape[0], reg))
 
         model = reg.export_model()
 

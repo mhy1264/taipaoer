@@ -6,6 +6,7 @@ from calendar import isleap
 from count_area import three_points_weather
 from util import cal_dis
 
+
 def get_obv_station(gen_station: str):
     obv_station = pd.read_csv("./data/gen_obv_min_dist_with_uv.csv")
     df = obv_station[obv_station['gen_station'].astype(
@@ -16,12 +17,12 @@ def get_obv_station(gen_station: str):
         return res[0], res[1]
     except:
         return None, None
-    
+
 
 def get_weater_location(weather_station: str):
     df = pd.read_csv("./data/weather_station.csv")
-    
-    df = df[df['StationName'] == weather_station] 
+
+    df = df[df['StationName'] == weather_station]
     res = df.values.tolist()[0]
     return [res[7], res[8]]
 
@@ -34,13 +35,20 @@ def get_station_info(name: str) -> list:
     return [info['StationID'], station_type]
 
 
-def get_month_data(station: list, year: int, month: int, UVStation: str):
+def get_month_data(station: list, year: int, month: int):
 
     month = '0{}'.format(month) if month < 10 else "{}".format(month)
 
     ds = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
     if (isleap(year)):
         ds[2] = 29
+
+    date = []
+    for i in range(1, ds[int(month)]+1):
+        date.append("{}-{}-{}".format(year, month,
+                    '0{}'.format(i) if i < 10 else i))
+
     data = {
         "date": "2017-02-01T00:00:00.000+08:00",
         "type": "table_month",
@@ -57,11 +65,15 @@ def get_month_data(station: list, year: int, month: int, UVStation: str):
         f.write(res.text)
 
     jsonObj = json.loads(res.text)
-    if jsonObj['metadata']['count'] != 0:
-        daily_data = json.loads(res.text)['data'][0]['dts']
+    ndata = jsonObj['metadata']['count']
 
+    if (ndata != 0):
+
+        daily_data = json.loads(res.text)['data'][0]['dts']
         Datas = []
+
         print(year, month)
+
         for i in daily_data:
             temp = [np.nan]*6
             temp[0] = i['DataDate'][0:10]
@@ -72,35 +84,44 @@ def get_month_data(station: list, year: int, month: int, UVStation: str):
                 "SunshineDuration" in i and "Total" in i['SunshineDuration']) else -1
             temp[4] = i['GlobalSolarRadiation']['Accumulation'] if (
                 'GlobalSolarRadiation' in i and 'Accumulation' in i['GlobalSolarRadiation']) else -1
-            temp[5] = False
+            temp[5] = True
             Datas.append(temp)
         Datas.sort()
 
         df = pd.DataFrame(
-            Datas, columns=['date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad', "HaveEmpty"])
-        
+            Datas, columns=['date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad', "notNull"])
+
+        NullData = list(set(date)-set(df['date'].to_list()))
+
+        for i in NullData:
+            Datas.append([i, np.nan, None, np.nan, np.nan, 1])
+
+        df = pd.DataFrame(
+            Datas, columns=['date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad', "notNull"])
 
         if (df['UV'].to_list() == [None]*df.shape[0]):
-            df['UV'] = 0
-        return df
+            df['UV'] = False
     else:
-        print("mata Count = 0")
-        return None
+        Datas = []
+        for i in date:
+            Datas.append([i, np.nan, 0, np.nan, np.nan, False])
+        df = pd.DataFrame(
+            Datas, columns=['date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad', "notNull"])
+    return df
 
 
-def get_data(station: str, UVStation) -> pd.DataFrame:
+def get_data(station: str) -> pd.DataFrame:
     col = ['Date', 'Temp', 'UV', 'SunShineHour', 'GlobalRad']
     temp = pd.DataFrame(columns=col)
     station = get_station_info(station)
-    print(station, UVStation)
+    print(station)
     for year in range(2017, 2023):
         for month in range(1, 13):
-            df = get_month_data(station, year, month, UVStation)
+            df = get_month_data(station, year, month)
             temp = pd.concat([temp, df])
-        print("\n")
 
     for month in range(1, 7):
-        df = get_month_data(station, 2023, month, UVStation)
+        df = get_month_data(station, 2023, month)
         temp = pd.concat([temp, df])
 
     return temp
@@ -112,39 +133,36 @@ def preprocess_data_weather(station_name: str):
     item = gen_station[gen_station['Station'] == station_name]
     sts = three_points_weather(item.iloc[0]['Lng'], item.iloc[0]['Lat'])
     # print(item['Station'], sts)
-        
-    w1 = get_data(sts[0], "")
-    w2 = get_data(sts[1], "")
-    w3 = get_data(sts[2], "")
 
-    col = ['Temp', 'SunShineHour', 'GlobalRad']
+    w1 = get_data(sts[0]).fillna(0)
+    w2 = get_data(sts[1]).fillna(0)
+    w3 = get_data(sts[2]).fillna(0)
 
-    # 先處理 ['Temp', 'SunShineHour', 'GlobalRad']
-
-    print(w1)
-    print(w2)
-    print(w3)
-    df = pd.concat([w1[col]/3+w2[col]/3+w3[col]/3],axis=1)
-
-
-    # 後處理 ['UV']
-    data = {
-        'date' : w1['date'].to_list(),
-        'UV1' : w1['UV'].to_list(),
-        'UV2' : w2['UV'].to_list(),
-        'UV3' : w3['UV'].to_list(),
+    vaild = {
+        'Vaild1': w1['notNull'].to_list(),
+        'Vaild2': w2['notNull'].to_list(),
+        'Vaild3': w3['notNull'].to_list(),
     }
 
-    UV = pd.DataFrame(data)
+    vaild = pd.DataFrame(vaild)
+    nVaild = pd.DataFrame({"vaild": vaild.sum(axis=1).to_list()})
 
-    print(UV)
+    col = ['Temp', 'SunShineHour', 'GlobalRad', 'UV']
 
-    return df
+    # 先處理 ['Temp', 'SunShineHour', 'GlobalRad']
+    df = pd.concat([w1[col]+w2[col]+w3[col]], axis=1)
+
+    avedf = pd.DataFrame({
+        "date": w1['date'].to_list(),
+        "Temp": pd.DataFrame(df['Temp'] / nVaild['vaild']).dropna()[0].to_list(),
+        "SunShineHour": pd.DataFrame(df['SunShineHour'] / nVaild['vaild']).dropna()[0].to_list(),
+        "GlobalRad": pd.DataFrame(df['GlobalRad'] / nVaild['vaild']).dropna()[0].to_list(),
+        "UV": pd.DataFrame(df['UV'] / nVaild['vaild']).dropna()[0].to_list(),
+    })
+    avedf = avedf.round(2)
+    return avedf
 
 
 if __name__ == "__main__":
-    df = preprocess_data_weather('竹工E/S光電站')
+    df = preprocess_data_weather('金門金沙光電站')
     print(df)
-
-
-    

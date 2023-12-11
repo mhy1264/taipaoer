@@ -38,7 +38,7 @@ if __name__ == "__main__":
            '台南七股II光電', '義竹工作站光電', '台南鹽田電氣室光電']
      
     data = dn3 
-    for row in range(1, len(data)):
+    for row in range(0, len(data)):
         df = solar_daily.iloc[:, [row, -1]]
         current_station = df.columns.tolist()[0]
         fileName = current_station.replace("/", "\\")

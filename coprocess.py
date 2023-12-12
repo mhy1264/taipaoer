@@ -42,8 +42,8 @@ if __name__ == "__main__":
            '大湳淨水場光電', '平鎮淨水場光電', '東興淨水場光電', '龍潭淨水場光電']
     dn3 = ['龜山加壓站光電', '淡水配水場光電', '鳳山水庫光電', '澎湖尖山小再光電',
            '台南七股II光電', '義竹工作站光電', '台南鹽田電氣室光電']
-     
-    data = dn3 
+
+    data = dn3
     for row in range(0, len(data)):
         folder_path = './new2_weather_data'
         file_name = data[row]+".csv"
@@ -76,8 +76,12 @@ if __name__ == "__main__":
 
             try:
                 merged_df.to_csv(
-                    "./new2_weather_data/{}.csv".format(fileName))
+                    "./new2_weather_data/{}.csv".format(data[row]))
             except Exception as e:
-                print("{} Error: {}".format(fileName, e.args))
+                print("{} Error: {}".format(data[row], e.args))
+                with open("Exception_file.txt", 'w') as f:
+                    f.write("{}\n".format(data[row]))
         except Exception as e:
-            print("{} Error: {}".format(fileName, e.args[0]))
+            print("{} Error: {}".format(data[row], e.args[0]))
+            with open("Exception_file.txt", 'w') as f:
+                f.write("{}\n".format(data[row]))

@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import weather
 import warnings
+import os
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
@@ -25,6 +26,11 @@ def get_location(gen_station: str) -> list:
     return df[['Lng', 'Lat']].values
 
 
+def is_file_in_folder(folder_path, file_name):
+    file_path = os.path.join(folder_path, file_name)
+    return os.path.exists(file_path)
+
+
 if __name__ == "__main__":
 
     solar_daily = pd.read_csv("./data/solar_daily.csv")
@@ -39,6 +45,11 @@ if __name__ == "__main__":
      
     data = dn3 
     for row in range(0, len(data)):
+        folder_path = './new2_weather_data'
+        file_name = data[row]+".csv"
+        print(file_name)
+        if is_file_in_folder(folder_path, file_name):
+            continue
         df = solar_daily.iloc[:, [row, -1]]
         current_station = df.columns.tolist()[0]
         fileName = current_station.replace("/", "\\")

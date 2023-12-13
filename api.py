@@ -1,9 +1,11 @@
 import flask as fl
 from flask import request
 from count_area import three_points_weather
-import requests
 import weather
 import time
+from tensorflow import keras
+import autokeras as ak
+
 
 app = fl.Flask(__name__)
 
@@ -26,7 +28,14 @@ def attr():
     nearest_weather = three_points_weather(
         float(_data["Lng"][0]), float(_data["Lat"][0]))
     data = weather.get_history_data(nearest_weather, 30)
-    print(data.head())
+
+    mean = data.drop(columns=['date']).mean(axis=0).round(2).values.tolist()
+
+    loaded_model = keras.models.load_model(
+        "model_autokeras", custom_objects=ak.CUSTOM_OBJECTS)
+
+    predicted_y = loaded_model.predict(mean)
+    print(predicted_y)
 
     return {
         "input": {
@@ -37,6 +46,12 @@ def attr():
             "station1": nearest_weather[0],
             "station2": nearest_weather[1],
             "station3": nearest_weather[2]
+        },
+        "weather": {
+            "Temp": mean[0],
+            "SunShineHour": mean[1],
+            "GlobalRad": mean[2],
+            "UV": mean[3]
         },
         "retult": {
             "status": "success",

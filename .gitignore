@@ -171,3 +171,4 @@ cython_debug/
 *.html
 structured_data_regressor
 *json
+testmodel/*

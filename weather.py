@@ -145,6 +145,10 @@ def combine(w1: pd.DataFrame, w2: pd.DataFrame, w3: pd.DataFrame):
 
     vaild = pd.DataFrame(vaild)
     nVaild = pd.DataFrame({"vaild": vaild.sum(axis=1).to_list()})
+    print(nVaild.shape, len(w1['notNull'].to_list()),
+          len(w2['notNull'].to_list()), len(w3['notNull'].to_list()))
+
+    df = df.fillna(0)
 
     avedf = pd.DataFrame({
         "date": w1['date'].to_list(),
@@ -180,6 +184,8 @@ def get_history_data(station_name: list, offset: int):
     for station in station_name:
         temp = get_data_from_cwb(station, start, finish)
         data.append(temp)
+
+    print(data[0].shape, data[1].shape, data[2].shape)
 
     df = combine(data[0], data[1], data[2])
     return df

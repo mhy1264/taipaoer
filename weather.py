@@ -46,20 +46,18 @@ def get_data_from_cwb(station: str, start: datetime.date, finish: datetime.date)
 
     data = {
         "date":  "{}-{}-{}T00:00:00".format(start.year, start.month if start.month >= 10 else "0{}".format(start.month), start.day if start.day > 0 else "0{}".format(start.day)),
-        "type": "table_month",
-        "stn_ID": station_info[0],
+        "type": "report_month",
+        "stn_ID": str(station_info[0]),
         "stn_type": station_info[1],
         "start": "{}-{}-{}T00:00:00".format(start.year, start.month if start.month >= 10 else "0{}".format(start.month), start.day if start.day > 0 else "0{}".format(start.day)),
         "end": "{}-{}-{}T00:00:00".format(finish.year, finish.month if finish.month >= 10 else "0{}".format(finish.month), finish.day if finish.day > 0 else "0{}".format(finish.day))
     }
 
+    print(data)
     res = requests.post(
         "https://codis.cwa.gov.tw/api/station?", data=data)
 
     jsonObj = json.loads(res.text)
-    with open("./data/{}.json".format(station), "w") as f:
-        json.dump(jsonObj, f)
-
     ndata = jsonObj['metadata']['count']
 
     df = pd.DataFrame(columns=['date', 'Temp', 'UV',
@@ -145,9 +143,6 @@ def combine(w1: pd.DataFrame, w2: pd.DataFrame, w3: pd.DataFrame):
 
     vaild = pd.DataFrame(vaild)
     nVaild = pd.DataFrame({"vaild": vaild.sum(axis=1).to_list()})
-    print(nVaild.shape, len(w1['notNull'].to_list()),
-          len(w2['notNull'].to_list()), len(w3['notNull'].to_list()))
-
     df = df.fillna(0)
 
     avedf = pd.DataFrame({

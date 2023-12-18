@@ -22,6 +22,10 @@ if __name__ == "__main__":
     maxtrial = 10
 
     for file in os.listdir("./t_data"):
+        log_dir = "logs/partital/{}_{}".format(file,
+                                               datetime.now().strftime("%Y%m%d-%H%M%S"))
+        tf_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir)
         data = pd.read_csv("./t_data/" + file)
 
         orig = data.shape[0]
@@ -51,7 +55,7 @@ if __name__ == "__main__":
             y_test = train.iloc[test_index][y_columns]
 
             # Feed the structured data regressor with training data.
-            reg.fit(x_train, y_train, epochs=epochs)
+            reg.fit(x_train, y_train, epochs=epochs, callbacks=[tf_callback])
             # Predict with the best model.
             predicted_y = reg.predict(x_test)
             # Evaluate the best model with testing data.

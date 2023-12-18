@@ -4,9 +4,10 @@ import pandas as pd
 import tensorflow as tf
 import autokeras as ak
 import argparse
-
+import datetime
 import numpy as np
 from sklearn.model_selection import KFold
+import os
 
 
 def myprint(s):
@@ -19,60 +20,67 @@ def mean_norm(df_input):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
     parser.add_argument("filePath", help="file path")
-    # parser.add_argument("epochs", help="epoch 數", type=int)
-    # parser.add_argument("maxtrial",
-    #                     help="maxtrial", type=int)
 
     args = parser.parse_args()
+    log_dir = "logs/partital/{}_{}".format(args.filePath,
+                                           datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    val = os.fork()
 
-    train, test = train_test_split(pd.read_csv(args.filePath), test_size=0.3)
+    if val == 0:
+        os.system("tensorboard --logdir " + log_dir + "  --port=6007")
+    elif val > 0:
+        tf_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir, histogram_freq=1)
 
-    data = pd.read_csv(args.filePath)
-    print(data.shape)
-    x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
-    y_columns = ['unit_deg']
+        train, test = train_test_split(
+            pd.read_csv(args.filePath), test_size=0.3)
 
-    data = data[data['degree'] > 0]
-    data = data[data['Temp'] > 0]
-    data = data[data['UV'] > 0]
-    data = data[data['SunShineHour'] > 0]
-    data = data[data['GlobalRad'] > 0]
-    data['unit_deg'] = data['degree'] / data['capacity']
+        data = pd.read_csv(args.filePath)
 
-    print(data.shape)
+        x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
+        y_columns = ['unit_deg']
 
-    # It tries 10 different models.
-    reg = ak.StructuredDataRegressor(max_trials=100, overwrite=True)
+        data = data[data['degree'] > 0]
+        data = data[data['Temp'] > 0]
+        data = data[data['UV'] > 0]
+        data = data[data['SunShineHour'] > 0]
+        data = data[data['GlobalRad'] > 0]
+        data['unit_deg'] = data['degree'] / data['capacity']
 
-    kf = KFold(n_splits=10)
-    train, test = train_test_split(data, test_size=0.3)
-    kf.get_n_splits(train)
-    for i, (train_index, test_index) in enumerate(kf.split(train)):
+        # It tries 10 different models.
+        reg = ak.StructuredDataRegressor(max_trials=10, overwrite=True)
 
-        print(f"Fold {i}:")
-        x_train = train.iloc[train_index][x_columns]
-        y_train = train.iloc[train_index][y_columns]
+        kf = KFold(n_splits=10)
+        train, test = train_test_split(data, test_size=0.3)
+        kf.get_n_splits(train)
 
-        x_test = train.iloc[test_index][x_columns]
-        y_test = train.iloc[test_index][y_columns]
+        for i, (train_index, test_index) in enumerate(kf.split(train)):
 
-        # Feed the structured data regressor with training data.
-        reg.fit(x_train, y_train, epochs=100)
-        # Predict with the best model.
-        predicted_y = reg.predict(x_test)
-        # Evaluate the best model with testing data.
-        print(reg.evaluate(x_test, y_test))
+            print(f"Fold {i}:")
+            x_train = train.iloc[train_index][x_columns]
+            y_train = train.iloc[train_index][y_columns]
 
-    test_x = test[x_columns]
-    test_y = test[y_columns]
-    prid_y = reg.predict(test_x)
-    print("====== Final Result =====")
-    print(reg.evaluate(test_x, test_y))
+            x_test = train.iloc[test_index][x_columns]
+            y_test = train.iloc[test_index][y_columns]
 
-    model = reg.export_model()
+            # Feed the structured data regressor with training data.
+            reg.fit(x_train, y_train, epochs=100,
+                    verbose=1, callbacks=[tf_callback])
+            # Predict with the best model.
+            predicted_y = reg.predict(x_test)
+            # Evaluate the best model with testing data.
+            print(reg.evaluate(x_test, y_test))
 
-    print(type(model))  # <class 'tensorflow.python.keras.engine.training.Model'>
+        test_x = test[x_columns]
+        test_y = test[y_columns]
+        prid_y = reg.predict(test_x)
 
-    model.save("model_autokeras.h5")
+        print("====== Final Result =====")
+        print(reg.evaluate(test_x, test_y))
+
+        model = reg.export_model()
+        model.save("model_autokeras.h5")
+        os.wait(val)

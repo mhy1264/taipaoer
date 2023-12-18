@@ -25,7 +25,11 @@ def getSession(date):
 
 if __name__ == "__main__":
 
-    maxt = 100
+    log_dir = "logs/all/".format(
+        datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    tf_callback = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir)
+    maxt = 10
     epochs = 100
 
     x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']
@@ -72,7 +76,7 @@ if __name__ == "__main__":
             y_test = train.iloc[test_index][y_columns]
 
             # Feed the structured data regressor with training data.
-            reg.fit(x_train, y_train, epochs=epochs)
+            reg.fit(x_train, y_train, epochs=epochs, callbacks=[tf_callback])
             # Predict with the best model.
             predicted_y = reg.predict(x_test)
             # Evaluate the best model with testing data.

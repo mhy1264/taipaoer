@@ -29,7 +29,7 @@ if __name__ == "__main__":
         datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir)
-    maxt = 10
+    maxt = 100
     epochs = 100
 
     x_columns = ['Temp', 'UV', 'SunShineHour', 'GlobalRad']

@@ -25,7 +25,7 @@ def getSession(date):
 
 if __name__ == "__main__":
 
-    log_dir = "logs/all/".format(
+    log_dir = "logs/all/{}".format(
         datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     tf_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir)
@@ -53,48 +53,41 @@ if __name__ == "__main__":
 
     print(data.shape)
 
-    data['session'] = data['date'].apply(lambda x: getSession(x))
+    # It tries 10 different models.
+    reg = ak.StructuredDataRegressor(max_trials=maxt, overwrite=True)
 
-    total = data
+    kf = KFold(n_splits=10)
+    train, test = train_test_split(data, test_size=0.3)
+    kf.get_n_splits(train)
+    for i, (train_index, test_index) in enumerate(kf.split(train)):
 
-    for j in range(3):
-        data = total[total['session'] == j]
+        print(f"Fold {i}:")
+        x_train = train.iloc[train_index][x_columns]
+        y_train = train.iloc[train_index][y_columns]
 
-        # It tries 10 different models.
-        reg = ak.StructuredDataRegressor(max_trials=maxt, overwrite=True)
+        x_test = train.iloc[test_index][x_columns]
+        y_test = train.iloc[test_index][y_columns]
 
-        kf = KFold(n_splits=10)
-        train, test = train_test_split(data, test_size=0.3)
-        kf.get_n_splits(train)
-        for i, (train_index, test_index) in enumerate(kf.split(train)):
+        # Feed the structured data regressor with training data.
+        reg.fit(x_train, y_train, epochs=epochs, callbacks=[tf_callback])
+        # Predict with the best model.
+        predicted_y = reg.predict(x_test)
+        # Evaluate the best model with testing data.
+        print(reg.evaluate(x_test, y_test))
 
-            print(f"Fold {i}:")
-            x_train = train.iloc[train_index][x_columns]
-            y_train = train.iloc[train_index][y_columns]
+    test_x = test[x_columns]
+    test_y = test[y_columns]
+    prid_y = reg.predict(test_x)
+    print("====== Final Result =====")
+    print(reg.evaluate(test_x, test_y))
 
-            x_test = train.iloc[test_index][x_columns]
-            y_test = train.iloc[test_index][y_columns]
+    model = reg.export_model()
 
-            # Feed the structured data regressor with training data.
-            reg.fit(x_train, y_train, epochs=epochs, callbacks=[tf_callback])
-            # Predict with the best model.
-            predicted_y = reg.predict(x_test)
-            # Evaluate the best model with testing data.
-            print(reg.evaluate(x_test, y_test))
+    # <class 'tensorflow.python.keras.engine.training.Model'>
+    print(type(model))
 
-        test_x = test[x_columns]
-        test_y = test[y_columns]
-        prid_y = reg.predict(test_x)
-        print("====== Final Result =====")
-        print(reg.evaluate(test_x, test_y))
+    with open('result.txt', 'a') as f:
+        f.write("====== Final Result: Session "+str(j)+" =====\n")
+        f.write(str(reg.evaluate(test_x, test_y))+"\n")
 
-        model = reg.export_model()
-
-        # <class 'tensorflow.python.keras.engine.training.Model'>
-        print(type(model))
-
-        with open('result.txt', 'a') as f:
-            f.write("====== Final Result: Session "+str(j)+" =====\n")
-            f.write(str(reg.evaluate(test_x, test_y))+"\n")
-
-        model.save('testmodel', save_format='tf')
+    model.save('model_autokeras', save_format='tf')

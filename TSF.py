@@ -1,3 +1,13 @@
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import autokeras as ak
+import os
+import numpy as np
+import datetime
+from sklearn.model_selection import KFold, train_test_split
+
+
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
@@ -51,8 +61,18 @@ if __name__ == "__main__":
         data['unit_deg'] = data['degree'] / data['capacity']
 
         # It tries 10 different models.
-        reg = ak.StructuredDataRegressor(max_trials=100, overwrite=True, loss='mean_absolute_error',
-                                         metrics=['mean_absolute_error', 'mean_squared_error'])
+
+        predict_from = 1
+        predict_until = 100
+        lookback = 3
+
+        reg = ak.TimeseriesForecaster(
+            lookback=lookback,
+            predict_from=predict_from,
+            predict_until=predict_until,
+            max_trials=100,
+            objective="val_loss",
+        )
 
         kf = KFold(n_splits=10)
         train, test = train_test_split(data, test_size=0.3)
@@ -67,11 +87,17 @@ if __name__ == "__main__":
             x_test = train.iloc[test_index][x_columns]
             y_test = train.iloc[test_index][y_columns]
 
-            # Feed the structured data regressor with training data.
-            reg.fit(x_train, y_train, epochs=100,
-                    verbose=1, callbacks=[tf_callback])
-            # Predict with the best model.
-            predicted_y = reg.predict(x_test)
+            # Train the TimeSeriesForecaster with train data
+            reg.fit(
+                x=x_train,
+                y=y_train,
+                batch_size=32,
+                epochs=100,
+                callbacks=[tf_callback])
+
+            # Predict with the best model(includes original training data).
+            predictions = reg.predict(x_test)
+
             # Evaluate the best model with testing data.
             print(reg.evaluate(x_test, y_test))
 

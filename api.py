@@ -11,9 +11,9 @@ import pandas as pd
 app = fl.Flask(__name__)
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    return 'Hello World!'
+    return "Hello World!"
 
 
 @app.route("/predict", methods=["POST"])
@@ -21,27 +21,15 @@ def attr():
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     _data = request.form.to_dict(flat=False)
     res = {
-        "input": {
-            "Lat": "",
-            "Lng": ""
-        },
-        "station": {
-            "station1": "",
-            "station2": "",
-            "station3": ""
-        },
-        "weather": {
-            "Temp": "",
-            "SunShineHour": "",
-            "GlobalRad": "",
-            "UV": ""
-        },
+        "input": {"Lat": "", "Lng": ""},
+        "station": {"station1": "", "station2": "", "station3": ""},
+        "weather": {"Temp": "", "SunShineHour": "", "GlobalRad": "", "UV": ""},
         "result": {
             "status": "",
             "Message": "",
             "value": "",
-            "request time": current_time
-        }
+            "request time": current_time,
+        },
     }
 
     nearest_weather = ""
@@ -52,7 +40,7 @@ def attr():
         res["result"] = {
             "status": "fail",
             "Message": "no Lat",
-            "request time": current_time
+            "request time": current_time,
         }
         return res
 
@@ -60,74 +48,66 @@ def attr():
         res["result"] = {
             "status": "fail",
             "Message": "no Lng",
-            "request time": current_time
+            "request time": current_time,
         }
         return res
 
     try:
         nearest_weather = three_points_weather(
-            float(_data["Lng"][0]), float(_data["Lat"][0]))
+            float(_data["Lng"][0]), float(_data["Lat"][0])
+        )
         print(nearest_weather)
     except Exception as e:
-        res["input"] = {
-            "Lat": _data["Lat"][0],
-            "Lng": _data["Lng"][0]
-        }
+        res["input"] = {"Lat": _data["Lat"][0], "Lng": _data["Lng"][0]}
 
         res["result"] = {
             "status": "fail",
             "Message": e.args[0],
-            "request time": current_time
+            "request time": current_time,
         }
         return res
 
     try:
         data = weather.get_history_data(nearest_weather, 30)
     except Exception as e:
-        res["input"] = {
-            "Lat": _data["Lat"][0],
-            "Lng": _data["Lng"][0]
-        }
+        res["input"] = {"Lat": _data["Lat"][0], "Lng": _data["Lng"][0]}
         res["station"] = {
             "station1": nearest_weather[0],
             "station2": nearest_weather[1],
-            "station3": nearest_weather[2]
+            "station3": nearest_weather[2],
         }
 
         res["result"] = {
             "status": "fail",
             "Message": e.args[0],
-            "request time": current_time
+            "request time": current_time,
         }
 
         return res
 
-    mean = data.drop(columns=['date']).mean(
-        axis=0).round(2).values.tolist()
+    mean = data.drop(columns=["date"]).mean(axis=0).round(2).values.tolist()
 
     predVal = 0
 
     try:
         loaded_model = keras.models.load_model(
-            "model_autokeras", custom_objects=ak.CUSTOM_OBJECTS)
+            "model_autokeras", custom_objects=ak.CUSTOM_OBJECTS
+        )
 
         predVal = loaded_model.predict(mean)
     except Exception as e:
-        res["input"] = {
-            "Lat": _data["Lat"][0],
-            "Lng": _data["Lng"][0]
-        }
+        res["input"] = {"Lat": _data["Lat"][0], "Lng": _data["Lng"][0]}
 
         res["weather"] = {
             "Temp": mean[0],
             "SunShineHour": mean[1],
             "GlobalRad": mean[2],
-            "UV": mean[3]
+            "UV": mean[3],
         }
-        res['result'] = {
+        res["result"] = {
             "status": "fail",
             "Message": e.args[0],
-            "request time": current_time
+            "request time": current_time,
         }
         return res
 
@@ -153,5 +133,5 @@ def attr():
     return res
 
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=8080)

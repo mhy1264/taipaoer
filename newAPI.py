@@ -2,7 +2,7 @@ import flask
 from requests import get
 import count_area as ca
 from weather import get_history_data as get_weather_data
-from flask import request
+from flask import jsonify, request
 import pandas as pd
 
 from tensorflow import keras
@@ -77,11 +77,12 @@ def predict():
     sun_shine_hour = float(_data["SunShineHour"][0])
 
     loaded_model = keras.models.load_model(
-        "model_autokeras", custom_objects=ak.CUSTOM_OBJECTS
+        "model_autokeras.h5", custom_objects=ak.CUSTOM_OBJECTS
     )
 
     predVal = loaded_model.predict([[temp, sun_shine_hour, global_rad, uv]])
-    print(predVal)
+    print(predVal[0][0])
+    return jsonify({"predict": str(predVal[0][0])})
 
 
 if __name__ == "__main__":

@@ -4,25 +4,38 @@ import count_area as ca
 from weather import get_history_data as get_weather_data
 from flask import jsonify, request
 import pandas as pd
-
+import datetime as dt
 from tensorflow import keras
 import autokeras as ak
+import json
 
 app = flask.Flask(__name__)
 
 
-@app.route("/")
+@app.route("/", methods = ["GET", "POST"])
 def index():
     return "Hello World!"
+
+@app.route("/time", methods = ["GET", "POST"])
+def currentTime():
+    today = dt.datetime.now()
+    return "Current Time: {}".format(today)
 
 
 @app.route("/getThreeStation", methods=["post"])
 def getThreeStaton():
     _data = request.form.to_dict(flat=False)
-    print(_data)
+    data = request.data
 
-    Lng = float(_data["Lng"][0])
-    Lat = float(_data["Lat"][0])
+    print("2:  ",_data)
+
+    try:
+        Lng = float(_data["Lng"][0])
+        Lat = float(_data["Lat"][0])
+    except:
+        Lng = float(json.loads(data)['Lng'])
+        Lat = float(json.loads(data)['Lat'])
+
 
     print(Lng, Lat)
     weather_stations = ca.three_points_weather(Lng, Lat)
@@ -86,4 +99,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
